@@ -9,7 +9,7 @@ export interface CustomRequestConfig extends InternalAxiosRequestConfig {
   _skipAuthRedirect?: boolean;
 }
 
-const BASE_URL = '/api';
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/api`;
 const REFRESH_TOKEN_PATH = '/v1/auth/refresh';
 
 const request = axios.create({
