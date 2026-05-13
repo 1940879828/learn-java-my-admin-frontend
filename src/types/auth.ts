@@ -1,8 +1,4 @@
-export interface Result<T = unknown> {
-  code: number;
-  message: string;
-  data: T;
-}
+import type { Result } from './common';
 
 export interface LoginRequest {
   username: string;
@@ -12,6 +8,12 @@ export interface LoginRequest {
 export interface RegisterRequest {
   username: string;
   password: string;
+  email: string;
+  phone?: string;
+}
+
+export interface RefreshRequest {
+  refreshToken: string;
 }
 
 export interface LoginResponse {
@@ -19,3 +21,5 @@ export interface LoginResponse {
   refreshToken: string;
   tokenType: string;
 }
+
+export type { Result };
