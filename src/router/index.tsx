@@ -1,34 +1,37 @@
 import { createBrowserRouter } from 'react-router-dom';
-import AuthRoute from './AuthRoute';
+import type { MenuTreeNode } from '../types/menu';
+import AuthGuard from './guards/AuthGuard';
+import BootstrapGuard from './guards/BootstrapGuard';
 import AdminLayout from '../layouts/AdminLayout';
 import LoginPage from '../pages/Login';
-import HomePage from '../pages/Home';
 import NotFoundPage from '../pages/NotFound';
+import ForbiddenPage from '../pages/Forbidden';
+import ProfilePage from '../pages/Profile';
+import { buildRoutes } from './buildRoutes';
 
-const router = createBrowserRouter([
-  {
-    path: '/login',
-    element: <LoginPage />,
-  },
-  {
-    element: <AuthRoute />,
-    children: [
-      {
-        element: <AdminLayout />,
-        children: [
-          {
-            index: true,
-            path: '/',
-            element: <HomePage />,
-          },
-        ],
-      },
-    ],
-  },
-  {
-    path: '*',
-    element: <NotFoundPage />,
-  },
-]);
+export function createAppRouter(menuTree: MenuTreeNode[]) {
+  const dynamicRoutes = buildRoutes(menuTree);
 
-export default router;
+  return createBrowserRouter([
+    { path: '/login', element: <LoginPage /> },
+    { path: '/403', element: <ForbiddenPage /> },
+    {
+      element: <AuthGuard />,
+      children: [
+        {
+          element: <BootstrapGuard />,
+          children: [
+            {
+              element: <AdminLayout />,
+              children: [
+                { path: '/profile', element: <ProfilePage /> },
+                ...dynamicRoutes,
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    { path: '*', element: <NotFoundPage /> },
+  ]);
+}

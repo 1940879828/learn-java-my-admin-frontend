@@ -1,5 +1,5 @@
 import axios, { type InternalAxiosRequestConfig, type AxiosResponse } from 'axios';
-import { message } from 'antd';
+import { message, Modal } from 'antd';
 import { useAuthStore } from '../store/useAuthStore';
 import type { Result, LoginResponse } from '../types/auth';
 
@@ -9,7 +9,7 @@ export interface CustomRequestConfig extends InternalAxiosRequestConfig {
 }
 
 const BASE_URL = '/api';
-const REFRESH_TOKEN_PATH = '/auth/refresh';
+const REFRESH_TOKEN_PATH = '/api/v1/auth/refresh';
 
 const request = axios.create({
   baseURL: BASE_URL,
@@ -25,7 +25,7 @@ const drainQueue = (token: string) => {
 };
 
 const redirectToLogin = () => {
-  useAuthStore.getState().clearAuth();
+  useAuthStore.getState().clear();
   window.location.replace('/login');
 };
 
@@ -41,8 +41,10 @@ request.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error) => {
     const originalRequest = error.config as CustomRequestConfig;
+    const status = error.response?.status;
+    const data = error.response?.data;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (status === 401 && !originalRequest._retry) {
       const { refreshToken } = useAuthStore.getState();
 
       if (!refreshToken) {
@@ -64,10 +66,10 @@ request.interceptors.response.use(
 
       try {
         const { data } = await axios.post<Result<LoginResponse>>(
-          `${BASE_URL}${REFRESH_TOKEN_PATH}`, 
+          `${BASE_URL}${REFRESH_TOKEN_PATH}`,
           { refreshToken }
         );
-        
+
         if (data.code === 200 && data.data) {
           const { accessToken: newAccessToken, refreshToken: newRefreshToken } = data.data;
           useAuthStore.getState().setTokens(newAccessToken, newRefreshToken);
@@ -87,11 +89,23 @@ request.interceptors.response.use(
     }
 
     if (!originalRequest._skipErrorHandler) {
-      const msg: string = error.response?.data?.message ?? error.message ?? '请求失败';
-      message.error(msg);
+      switch (status) {
+        case 403:
+          message.error(`无权限访问 (traceId: ${data?.traceId ?? 'n/a'})`);
+          break;
+        case 423:
+          Modal.error({ title: '账户已被锁定', content: data?.message || '请联系管理员' });
+          break;
+        case 429:
+          message.warning('操作过于频繁，请稍后再试');
+          break;
+        default:
+          const msg: string = data?.message ?? error.message ?? '请求失败';
+          message.error(msg);
+      }
     }
     return Promise.reject(error);
-  },
+  }
 );
 
 export default request;
