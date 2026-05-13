@@ -9,10 +9,14 @@ import type {
 } from '../types/auth';
 
 export const login = (data: LoginRequest) =>
-  request.post<Result<LoginResponse>>(API.auth.login, data);
+  request.post<Result<LoginResponse>>(API.auth.login, data, {
+    _skipAuthRedirect: true,
+  } as any);
 
 export const register = (data: RegisterRequest) =>
-  request.post<Result<void>>(API.auth.register, data);
+  request.post<Result<void>>(API.auth.register, data, {
+    _skipAuthRedirect: true,
+  } as any);
 
 export const refresh = (data: RefreshRequest) =>
   request.post<Result<LoginResponse>>(API.auth.refresh, data);

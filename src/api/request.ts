@@ -6,6 +6,7 @@ import type { Result, LoginResponse } from '../types/auth';
 export interface CustomRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
   _skipErrorHandler?: boolean;
+  _skipAuthRedirect?: boolean;
 }
 
 const BASE_URL = '/api';
@@ -48,7 +49,9 @@ request.interceptors.response.use(
       const { refreshToken } = useAuthStore.getState();
 
       if (!refreshToken) {
-        redirectToLogin();
+        if (!originalRequest._skipAuthRedirect) {
+          redirectToLogin();
+        }
         return Promise.reject(error);
       }
 
