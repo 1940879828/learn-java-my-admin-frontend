@@ -38,9 +38,14 @@ export default function LoginPage() {
         setTokens(data.accessToken, data.refreshToken);
 
         // Immediately fetch user details
-        const me = await getCurrentUser();
-        if (me.data.code === 200 && me.data.data) {
-          setUser(me.data.data);
+        try {
+          const me = await getCurrentUser();
+          if (me.data.code === 200 && me.data.data) {
+            setUser(me.data.data);
+          }
+        } catch (userError) {
+          console.error('Failed to fetch user details:', userError);
+          // Continue login even if user details fetch fails
         }
 
         message.success('登录成功');
@@ -51,6 +56,7 @@ export default function LoginPage() {
         return false;
       }
     } catch (error) {
+      console.error('Login error:', error);
       // Axios 拦截器已经显示了错误消息
       return false;
     }
@@ -94,6 +100,11 @@ export default function LoginPage() {
           title="Antd Admin"
           subTitle="基于 Ant Design 的后台管理系统"
           onFinish={handleLogin}
+          submitter={{
+            searchConfig: {
+              submitText: '登录',
+            },
+          }}
           actions={
             <span
               style={{ cursor: 'pointer', color: '#1677ff' }}
