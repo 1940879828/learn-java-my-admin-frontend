@@ -5,7 +5,9 @@ import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginFormPage, ProFormText, ProForm } from '@ant-design/pro-components';
 import type { ProFormInstance } from '@ant-design/pro-components';
 import { login, register } from '../../api/auth';
+import { getCurrentUser } from '../../api/user';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useUserStore } from '../../store/useUserStore';
 
 interface LoginValues {
   username: string;
@@ -15,12 +17,15 @@ interface LoginValues {
 interface RegisterValues {
   username: string;
   password: string;
+  email: string;
+  phone?: string;
   confirmPassword: string;
 }
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { setTokens, setUsername } = useAuthStore();
+  const { setTokens } = useAuthStore();
+  const { setUser } = useUserStore();
   const [registerOpen, setRegisterOpen] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
   const registerFormRef = useRef<ProFormInstance<RegisterValues>>(undefined);
@@ -31,7 +36,13 @@ export default function LoginPage() {
       const { code, message: msg, data } = res.data;
       if (code === 200 && data) {
         setTokens(data.accessToken, data.refreshToken);
-        setUsername(values.username);
+
+        // Immediately fetch user details
+        const me = await getCurrentUser();
+        if (me.data.code === 200 && me.data.data) {
+          setUser(me.data.data);
+        }
+
         message.success('登录成功');
         navigate('/', { replace: true });
         return true;
@@ -52,7 +63,12 @@ export default function LoginPage() {
     }
     setRegisterLoading(true);
     try {
-      const res = await register({ username: values.username, password: values.password });
+      const res = await register({
+        username: values.username,
+        password: values.password,
+        email: values.email,
+        phone: values.phone
+      });
       const { code, message: msg } = res.data;
       if (code === 200) {
         message.success('注册成功，请登录');
@@ -142,6 +158,20 @@ export default function LoginPage() {
             label="确认密码"
             placeholder="再次输入密码"
             rules={[{ required: true, message: '请再次输入密码' }]}
+          />
+          <ProFormText
+            name="email"
+            label="邮箱"
+            placeholder="请输入邮箱"
+            rules={[
+              { required: true, message: '请输入邮箱' },
+              { type: 'email', message: '请输入有效的邮箱地址' },
+            ]}
+          />
+          <ProFormText
+            name="phone"
+            label="手机号"
+            placeholder="请输入手机号（可选）"
           />
         </ProForm>
       </Modal>

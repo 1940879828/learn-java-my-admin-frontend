@@ -6,12 +6,13 @@ import {
   ThunderboltOutlined,
   ClockCircleOutlined,
 } from '@ant-design/icons';
-import { useAuthStore } from '../../store/useAuthStore';
+import { useUserStore } from '../../store/useUserStore';
 
 const { Title, Paragraph, Text } = Typography;
 
 export default function HomePage() {
-  const username = useAuthStore((s) => s.username);
+  const user = useUserStore((s) => s.user);
+  const username = user?.username;
 
   return (
     <Space direction="vertical" size="large" style={{ width: '100%' }}>
