@@ -7,6 +7,7 @@ import LoginPage from '../pages/Login';
 import NotFoundPage from '../pages/NotFound';
 import ForbiddenPage from '../pages/Forbidden';
 import ProfilePage from '../pages/Profile';
+import HomePage from '../pages/Home';
 import { buildRoutes } from './buildRoutes';
 
 export function createAppRouter(menuTree: MenuTreeNode[]) {
@@ -24,6 +25,7 @@ export function createAppRouter(menuTree: MenuTreeNode[]) {
             {
               element: <AdminLayout />,
               children: [
+                { path: '/', element: <HomePage /> },
                 { path: '/profile', element: <ProfilePage /> },
                 ...dynamicRoutes,
               ],
