@@ -32,9 +32,12 @@ export function buildRoutes(menuTree: MenuTreeNode[]): RouteObject[] {
         result.push({
           path: fullPath,
           element: node.perms ? (
-            <PermissionGuard code={node.perms} />
-          ) : undefined,
-          children: [{ index: true, element: <Component /> }],
+            <PermissionGuard code={node.perms}>
+              <Component />
+            </PermissionGuard>
+          ) : (
+            <Component />
+          ),
         });
       }
 
