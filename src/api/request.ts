@@ -10,7 +10,7 @@ export interface CustomRequestConfig extends InternalAxiosRequestConfig {
 }
 
 const BASE_URL = '/api';
-const REFRESH_TOKEN_PATH = '/api/v1/auth/refresh';
+const REFRESH_TOKEN_PATH = '/v1/auth/refresh';
 
 const request = axios.create({
   baseURL: BASE_URL,
