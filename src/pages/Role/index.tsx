@@ -3,14 +3,14 @@ import { ProTable } from '@ant-design/pro-components';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { listRoles, deleteRole } from '../../api/role';
+import { listRoles, deleteRole } from '../../api';
 import type { RoleResponse } from '../../types/role';
 import Permission from '../../components/Permission';
 import FormDrawer from './FormDrawer';
 import MenuAssignDrawer from './MenuAssignDrawer';
 
 export default function RolePage() {
-  const actionRef = useRef<ActionType>();
+  const actionRef = useRef<ActionType>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editRecord, setEditRecord] = useState<RoleResponse | null>(null);
   const [menuAssignRecord, setMenuAssignRecord] = useState<RoleResponse | null>(null);
@@ -24,18 +24,18 @@ export default function RolePage() {
         return;
       }
       message.error(res.data.message);
-    } catch (error) {
-      // Error handled by interceptor
+    } catch (e) {
+      console.log(e)
     }
   };
 
   const columns: ProColumns<RoleResponse>[] = [
     { title: 'ID', dataIndex: 'id', width: 80, search: false },
-    { title: '角色编码', dataIndex: 'roleCode', key: 'keyword' },
-    { title: '角色名称', dataIndex: 'roleName', search: false },
+    { title: '角色编码', dataIndex: 'roleCode', key: 'keyword', width: 150 },
+    { title: '角色名称', dataIndex: 'roleName', search: false, width: 150 },
     { title: '等级', dataIndex: 'level', search: false, width: 80 },
-    { title: '数据权限', dataIndex: 'dataScope', search: false },
-    { title: '创建人', dataIndex: 'createBy', search: false },
+    { title: '数据权限', dataIndex: 'dataScope', search: false, width: 120 },
+    { title: '创建人', dataIndex: 'createBy', search: false, width: 120 },
     { title: '创建时间', dataIndex: 'createTime', search: false, width: 180 },
     {
       title: '操作',
@@ -65,6 +65,7 @@ export default function RolePage() {
         columns={columns}
         actionRef={actionRef}
         rowKey="id"
+        scroll={{ x: 'max-content' }}
         request={async (params) => {
           try {
             const { data } = await listRoles({
@@ -78,6 +79,7 @@ export default function RolePage() {
               success: true,
             };
           } catch (error) {
+            console.log(error)
             return { data: [], total: 0, success: false };
           }
         }}

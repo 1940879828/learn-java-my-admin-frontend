@@ -3,7 +3,7 @@ import { ProTable } from '@ant-design/pro-components';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, message, Tag } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { listUsers, deleteUser, lockUser, unlockUser } from '../../api/user';
+import { listUsers, deleteUser, lockUser, unlockUser } from '../../api';
 import type { UserResponse } from '../../types/user';
 import Permission from '../../components/Permission';
 import CreateDrawer from './CreateDrawer';
@@ -11,7 +11,7 @@ import EditDrawer from './EditDrawer';
 import RoleAssignModal from './RoleAssignModal';
 
 export default function UserPage() {
-  const actionRef = useRef<ActionType>();
+  const actionRef = useRef<ActionType>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [editRecord, setEditRecord] = useState<UserResponse | null>(null);
   const [roleAssignRecord, setRoleAssignRecord] = useState<UserResponse | null>(null);
@@ -26,7 +26,7 @@ export default function UserPage() {
       }
       message.error(res.data.message);
     } catch (error) {
-      // Error handled by interceptor
+      console.log(error)
     }
   };
 
@@ -40,7 +40,7 @@ export default function UserPage() {
       }
       message.error(res.data.message);
     } catch (error) {
-      // Error handled by interceptor
+      console.log(error)
     }
   };
 
@@ -54,18 +54,19 @@ export default function UserPage() {
       }
       message.error(res.data.message);
     } catch (error) {
-      // Error handled by interceptor
+      console.log(error)
     }
   };
 
   const columns: ProColumns<UserResponse>[] = [
     { title: 'ID', dataIndex: 'id', width: 80, search: false },
-    { title: '用户名', dataIndex: 'username', key: 'keyword' },
-    { title: '邮箱', dataIndex: 'email', search: false },
-    { title: '手机号', dataIndex: 'phone', search: false },
+    { title: '用户名', dataIndex: 'username', key: 'keyword', width: 120 },
+    { title: '邮箱', dataIndex: 'email', search: false, width: 200 },
+    { title: '手机号', dataIndex: 'phone', search: false, width: 150 },
     {
       title: '状态',
       dataIndex: 'status',
+      width: 100,
       valueEnum: {
         0: { text: '禁用', status: 'Default' },
         1: { text: '启用', status: 'Success' },
@@ -74,6 +75,7 @@ export default function UserPage() {
     {
       title: '锁定',
       dataIndex: 'locked',
+      width: 100,
       render: (_, record) =>
         record.locked ? <Tag color="red">已锁定</Tag> : <Tag>正常</Tag>,
       search: false,
@@ -114,6 +116,7 @@ export default function UserPage() {
         columns={columns}
         actionRef={actionRef}
         rowKey="id"
+        scroll={{ x: 'max-content' }}
         request={async (params) => {
           try {
             const { data } = await listUsers({
@@ -128,6 +131,7 @@ export default function UserPage() {
               success: true,
             };
           } catch (error) {
+            console.log(error)
             return { data: [], total: 0, success: false };
           }
         }}

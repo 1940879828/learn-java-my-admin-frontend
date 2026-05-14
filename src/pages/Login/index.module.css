@@ -1,0 +1,70 @@
+/* 登录页面样式优化 */
+
+/* 登录容器淡入动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 渐变背景动画 */
+@keyframes gradientShift {
+  0% {
+    background-position: 0 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+/* Logo 脉动动画 */
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* 登录表单容器 */
+.loginContainer {
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* 输入框聚焦效果 */
+.loginContainer :global(.ant-input:focus),
+.loginContainer :global(.ant-input-focused) {
+  box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.1);
+}
+
+/* 按钮悬停效果 */
+.loginContainer :global(.ant-btn-primary) {
+  transition: all 0.3s ease;
+}
+
+.loginContainer :global(.ant-btn-primary:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(22, 119, 255, 0.3);
+}
+
+/* Logo 动画 */
+.loginContainer :global(.anticon-safety) {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .loginContainer {
+    padding: 16px;
+  }
+}

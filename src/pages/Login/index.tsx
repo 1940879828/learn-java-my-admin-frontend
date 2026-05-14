@@ -1,34 +1,27 @@
-import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { message, Modal } from 'antd';
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { LoginFormPage, ProFormText, ProForm } from '@ant-design/pro-components';
-import type { ProFormInstance } from '@ant-design/pro-components';
-import { login, register } from '../../api/auth';
-import { getCurrentUser } from '../../api/user';
+import { message, Space, Typography } from 'antd';
+import { LockOutlined, UserOutlined, SafetyOutlined } from '@ant-design/icons';
+import { LoginFormPage, ProFormText } from '@ant-design/pro-components';
+import { login } from '../../api';
+import { getCurrentUser } from '../../api';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useUserStore } from '../../store/useUserStore';
+import { useThemeStore } from '../../store/useThemeStore';
+import styles from './index.module.css';
+
+const { Text } = Typography;
 
 interface LoginValues {
   username: string;
   password: string;
 }
 
-interface RegisterValues {
-  username: string;
-  password: string;
-  email: string;
-  phone?: string;
-  confirmPassword: string;
-}
-
 export default function LoginPage() {
   const navigate = useNavigate();
   const { setTokens } = useAuthStore();
   const { setUser } = useUserStore();
-  const [registerOpen, setRegisterOpen] = useState(false);
-  const [registerLoading, setRegisterLoading] = useState(false);
-  const registerFormRef = useRef<ProFormInstance<RegisterValues>>(undefined);
+  const themeMode = useThemeStore((s) => s.mode);
+  const isDark = themeMode === 'dark';
 
   const handleLogin = async (values: LoginValues) => {
     try {
@@ -37,7 +30,6 @@ export default function LoginPage() {
       if (code === 200 && data) {
         setTokens(data.accessToken, data.refreshToken);
 
-        // Immediately fetch user details
         try {
           const me = await getCurrentUser();
           if (me.data.code === 200 && me.data.data) {
@@ -45,7 +37,6 @@ export default function LoginPage() {
           }
         } catch (userError) {
           console.error('Failed to fetch user details:', userError);
-          // Continue login even if user details fetch fails
         }
 
         message.success('登录成功');
@@ -57,135 +48,83 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error('Login error:', error);
-      // Axios 拦截器已经显示了错误消息
       return false;
-    }
-  };
-
-  const handleRegister = async (values: RegisterValues) => {
-    if (values.password !== values.confirmPassword) {
-      message.error('两次密码输入不一致');
-      return false;
-    }
-    setRegisterLoading(true);
-    try {
-      const res = await register({
-        username: values.username,
-        password: values.password,
-        email: values.email,
-        phone: values.phone
-      });
-      const { code, message: msg } = res.data;
-      if (code === 200) {
-        message.success('注册成功，请登录');
-        setRegisterOpen(false);
-        registerFormRef.current?.resetFields();
-        return true;
-      } else {
-        message.error(msg || '注册失败');
-        return false;
-      }
-    } catch {
-      // Axios 拦截器已经显示了错误消息
-      return false;
-    } finally {
-      setRegisterLoading(false);
     }
   };
 
   return (
-    <>
-      <div style={{ height: '100vh', backgroundColor: '#f0f2f5' }}>
-        <LoginFormPage<LoginValues>
-          title="Antd Admin"
-          subTitle="基于 Ant Design 的后台管理系统"
-          onFinish={handleLogin}
-          submitter={{
-            searchConfig: {
-              submitText: '登录',
+    <div
+      style={{
+        height: '100vh',
+        background: isDark
+          ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
+          : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        backgroundSize: '400% 400%',
+        animation: 'gradientShift 15s ease infinite',
+      }}
+    >
+      <LoginFormPage<LoginValues>
+        backgroundImageUrl={
+          isDark
+            ? undefined
+            : 'https://mdn.alipayobjects.com/yuyan_qk0oxh/afts/img/V-_oS6r-i7wAAAAAAAAAAAAAFl94AQBr'
+        }
+        logo={<SafetyOutlined style={{ fontSize: 48, color: '#1677ff' }} />}
+        title="JWT Admin"
+        subTitle={
+          <Space orientation="vertical" size={4}>
+            <Text type="secondary">基于 Spring Boot + JWT 的权限管理系统</Text>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Java 8 · Spring Boot 2.7 · MySQL 5.7
+            </Text>
+          </Space>
+        }
+        containerStyle={{
+          backgroundColor: isDark ? 'rgba(20, 20, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(8px)',
+          borderRadius: 8,
+        }}
+        className={styles.loginContainer}
+        onFinish={handleLogin}
+        submitter={{
+          searchConfig: {
+            submitText: '登录',
+          },
+          submitButtonProps: {
+            size: 'large',
+            style: {
+              width: '100%',
             },
-          }}
-          actions={
-            <span
-              style={{ cursor: 'pointer', color: '#1677ff' }}
-              onClick={() => setRegisterOpen(true)}
-            >
-              注册账号
-            </span>
-          }
-        >
-          <ProFormText
-            name="username"
-            fieldProps={{ prefix: <UserOutlined /> }}
-            placeholder="请输入用户名"
-            rules={[{ required: true, message: '请输入用户名' }]}
-          />
-          <ProFormText.Password
-            name="password"
-            fieldProps={{ prefix: <LockOutlined /> }}
-            placeholder="请输入密码"
-            rules={[{ required: true, message: '请输入密码' }]}
-          />
-        </LoginFormPage>
-      </div>
-
-      <Modal
-        title="注册账号"
-        open={registerOpen}
-        onCancel={() => setRegisterOpen(false)}
-        footer={null}
-        destroyOnHidden
+          },
+        }}
       >
-        <ProForm<RegisterValues>
-          formRef={registerFormRef}
-          onFinish={handleRegister}
-          submitter={{
-            searchConfig: { submitText: '注册' },
-            resetButtonProps: false,
-            submitButtonProps: { loading: registerLoading, block: true },
+        <ProFormText
+          name="username"
+          fieldProps={{
+            size: 'large',
+            prefix: <UserOutlined style={{ color: '#1677ff' }} />,
           }}
-        >
-          <ProFormText
-            name="username"
-            label="用户名"
-            placeholder="3-20位字母、数字或下划线"
-            rules={[
-              { required: true, message: '请输入用户名' },
-              { min: 3, max: 20, message: '用户名长度为 3-20 位' },
-              { pattern: /^[a-zA-Z0-9_]+$/, message: '只允许字母、数字和下划线' },
-            ]}
-          />
-          <ProFormText.Password
-            name="password"
-            label="密码"
-            placeholder="6-20位密码"
-            rules={[
-              { required: true, message: '请输入密码' },
-              { min: 6, max: 20, message: '密码长度为 6-20 位' },
-            ]}
-          />
-          <ProFormText.Password
-            name="confirmPassword"
-            label="确认密码"
-            placeholder="再次输入密码"
-            rules={[{ required: true, message: '请再次输入密码' }]}
-          />
-          <ProFormText
-            name="email"
-            label="邮箱"
-            placeholder="请输入邮箱"
-            rules={[
-              { required: true, message: '请输入邮箱' },
-              { type: 'email', message: '请输入有效的邮箱地址' },
-            ]}
-          />
-          <ProFormText
-            name="phone"
-            label="手机号"
-            placeholder="请输入手机号（可选）"
-          />
-        </ProForm>
-      </Modal>
-    </>
+          placeholder="用户名: admin"
+          initialValue="admin"
+          rules={[
+            { required: true, message: '请输入用户名' },
+            { min: 3, max: 20, message: '用户名长度为 3-20 位' },
+          ]}
+        />
+        <ProFormText.Password
+          name="password"
+          fieldProps={{
+            size: 'large',
+            prefix: <LockOutlined style={{ color: '#1677ff' }} />,
+          }}
+          placeholder="密码: 123456"
+          initialValue="123456"
+          rules={[
+            { required: true, message: '请输入密码' },
+            { min: 6, message: '密码长度至少 6 位' },
+          ]}
+        />
+      </LoginFormPage>
+    </div>
   );
 }

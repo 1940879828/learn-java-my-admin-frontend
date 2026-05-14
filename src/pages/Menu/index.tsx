@@ -3,13 +3,13 @@ import { ProTable } from '@ant-design/pro-components';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { Button, Popconfirm, message, Tag } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
-import { getMenuTree, deleteMenu } from '../../api/menu';
+import { getMenuTree, deleteMenu } from '../../api';
 import type { MenuTreeNode } from '../../types/menu';
 import Permission from '../../components/Permission';
 import FormDrawer from './FormDrawer';
 
 export default function MenuPage() {
-  const actionRef = useRef<ActionType>();
+  const actionRef = useRef<ActionType>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editRecord, setEditRecord] = useState<MenuTreeNode | null>(null);
 
@@ -23,14 +23,14 @@ export default function MenuPage() {
       }
       message.error(res.data.message);
     } catch (error) {
-      // Error handled by interceptor
+      console.log(error)
     }
   };
 
   const columns: ProColumns<MenuTreeNode>[] = [
     { title: 'ID', dataIndex: 'id', width: 80 },
     { title: '菜单名称', dataIndex: 'menuName', width: 200 },
-    { title: '菜单编码', dataIndex: 'menuCode' },
+    { title: '菜单编码', dataIndex: 'menuCode', width: 150 },
     {
       title: '类型',
       dataIndex: 'menuType',
@@ -45,8 +45,8 @@ export default function MenuPage() {
         );
       },
     },
-    { title: '路径', dataIndex: 'path', ellipsis: true },
-    { title: '权限码', dataIndex: 'perms', ellipsis: true },
+    { title: '路径', dataIndex: 'path', width: 200 },
+    { title: '权限码', dataIndex: 'perms', width: 150 },
     { title: '图标', dataIndex: 'icon', width: 100 },
     { title: '排序', dataIndex: 'sortOrder', width: 80 },
     {
@@ -86,6 +86,7 @@ export default function MenuPage() {
         actionRef={actionRef}
         rowKey="id"
         search={false}
+        scroll={{ x: 'max-content' }}
         request={async () => {
           try {
             const { data } = await getMenuTree();
@@ -94,6 +95,7 @@ export default function MenuPage() {
               success: true,
             };
           } catch (error) {
+            console.log(error)
             return { data: [], success: false };
           }
         }}

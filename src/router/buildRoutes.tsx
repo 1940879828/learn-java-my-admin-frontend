@@ -3,10 +3,7 @@ import type { RouteObject } from 'react-router-dom';
 import type { MenuTreeNode } from '../types/menu';
 import PermissionGuard from './guards/PermissionGuard';
 
-const componentRegistry: Record<
-  string,
-  React.LazyExoticComponent<React.ComponentType>
-> = {
+const componentRegistry: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
   'User/List': lazy(() => import('../pages/User')),
   'Role/List': lazy(() => import('../pages/Role')),
   'Menu/List': lazy(() => import('../pages/Menu')),
@@ -14,39 +11,44 @@ const componentRegistry: Record<
   Profile: lazy(() => import('../pages/Profile')),
 };
 
+function buildFullPath(path: string, parentPath: string): string {
+  return path.startsWith('/') ? path : `${parentPath}/${path}`;
+}
+
+function createRouteElement(
+  Component: React.LazyExoticComponent<React.ComponentType>,
+  perms?: string
+): React.ReactNode {
+  return perms ? (
+    <PermissionGuard code={perms}>
+      <Component />
+    </PermissionGuard>
+  ) : (
+    <Component />
+  );
+}
+
 export function buildRoutes(menuTree: MenuTreeNode[]): RouteObject[] {
-  const result: RouteObject[] = [];
+  const routes: RouteObject[] = [];
 
-  const walk = (nodes: MenuTreeNode[], parentPath = '') => {
-    nodes.forEach((node) => {
-      if (node.menuType === 'BUTTON' || !node.path) return;
+  function processMenuNode(node: MenuTreeNode, parentPath = ''): void {
+    // Skip buttons and nodes without paths
+    if (node.menuType === 'BUTTON' || !node.path) return;
 
-      const fullPath = node.path.startsWith('/')
-        ? node.path
-        : `${parentPath}/${node.path}`;
-      const Component = node.component
-        ? componentRegistry[node.component]
-        : null;
+    const fullPath = buildFullPath(node.path, parentPath);
+    const Component = node.component ? componentRegistry[node.component] : null;
 
-      if (Component) {
-        result.push({
-          path: fullPath,
-          element: node.perms ? (
-            <PermissionGuard code={node.perms}>
-              <Component />
-            </PermissionGuard>
-          ) : (
-            <Component />
-          ),
-        });
-      }
+    if (Component) {
+      routes.push({
+        path: fullPath,
+        element: createRouteElement(Component, node.perms),
+      });
+    }
 
-      if (node.children?.length) {
-        walk(node.children, fullPath);
-      }
-    });
-  };
+    // Process child nodes recursively
+    node.children?.forEach((child) => processMenuNode(child, fullPath));
+  }
 
-  walk(menuTree);
-  return result;
+  menuTree.forEach((node) => processMenuNode(node));
+  return routes;
 }

@@ -2,17 +2,18 @@ import { useMemo } from 'react';
 import { ProLayout } from '@ant-design/pro-components';
 import type { MenuDataItem } from '@ant-design/pro-components';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Dropdown } from 'antd';
+import { Dropdown, Switch } from 'antd';
 import type { MenuProps } from 'antd';
-import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
+import { LogoutOutlined, UserOutlined, BulbOutlined } from '@ant-design/icons';
 import { useUserStore } from '../store/useUserStore';
 import { useAuthStore } from '../store/useAuthStore';
+import { useThemeStore } from '../store/useThemeStore';
 import { getIcon } from '../utils/iconMap';
 import type { MenuTreeNode } from '../types/menu';
 
 function toMenuDataItems(nodes: MenuTreeNode[]): MenuDataItem[] {
   return nodes
-    .filter((n) => n.menuType !== 'BUTTON' && n.visible !== false)
+    .filter((n) => n.menuType !== 'BUTTON' && n.visible)
     .map((n) => ({
       path: n.path,
       name: n.menuName,
@@ -28,6 +29,8 @@ export default function AdminLayout() {
   const user = useUserStore((s) => s.user);
   const clearAuth = useAuthStore((s) => s.clear);
   const resetUser = useUserStore((s) => s.reset);
+  const themeMode = useThemeStore((s) => s.mode);
+  const toggleTheme = useThemeStore((s) => s.toggleMode);
 
   const route = useMemo(
     () => ({ path: '/', routes: toMenuDataItems(menuTree) }),
@@ -46,6 +49,27 @@ export default function AdminLayout() {
       icon: <UserOutlined />,
       label: '个人中心',
       onClick: () => navigate('/profile'),
+    },
+    {
+      type: 'divider',
+    },
+    {
+      key: 'theme',
+      icon: <BulbOutlined />,
+      label: (
+        <div
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <span>暗黑模式</span>
+          <Switch
+            checked={themeMode === 'dark'}
+            onChange={toggleTheme}
+            size="small"
+            style={{ marginLeft: 8 }}
+          />
+        </div>
+      ),
     },
     {
       type: 'divider',
