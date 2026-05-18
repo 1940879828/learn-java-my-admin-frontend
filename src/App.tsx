@@ -18,7 +18,7 @@ export default function App() {
         algorithm: themeMode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
       }}
     >
-      <RouterProvider router={router} key={menuTree.length} />
+      <RouterProvider router={router} />
     </ConfigProvider>
   );
 }
